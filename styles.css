@@ -425,6 +425,54 @@ footer h3 a {
   color: #a0aec0;
 }
 
+/* Dark Mode - Week Dot Colors (Brighter for better contrast) */
+.dark-mode .pre-birth-week {
+  background: #1a202c;
+  opacity: 0.6;
+}
+
+.dark-mode .past-week-1 {
+  background: #6b8dc5;
+}
+
+.dark-mode .past-week-2 {
+  background: #d47a66;
+}
+
+.dark-mode .past-week-both {
+  background: #a855f7;
+}
+
+.dark-mode .past-week-together {
+  background: #5fd35f;
+  box-shadow: 0 0 6px rgba(95, 211, 95, 0.5);
+}
+
+.dark-mode .after-person1-death {
+  background: #d47a66;
+  opacity: 0.6;
+}
+
+.dark-mode .after-person2-death {
+  background: #6b8dc5;
+  opacity: 0.6;
+}
+
+.dark-mode .after-both-death {
+  background: #1a202c;
+  opacity: 0.4;
+}
+
+.dark-mode .current-week-1 {
+  background: #6b8dc5;
+  box-shadow: 0 0 10px rgba(107, 141, 197, 0.8);
+}
+
+.dark-mode .current-week-2 {
+  background: #d47a66;
+  box-shadow: 0 0 10px rgba(212, 122, 102, 0.8);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   body {
