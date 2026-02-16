@@ -19,7 +19,7 @@ Welcome to **Life Calendar for 2**, the first (as far as I know, as of 14MAR2025
 ## Using the Tool
 
 This app provides an opportunity to reflect on time as a finite resource:
-- **[Pray](https://github.com/robbie-med/pahnel) and Listen**: Take a moment to consider what matters most.
+- **[Pray](https://github.com/robbie-med/prhay) and Listen**: Take a moment to consider what matters most.
 - **Reflect**: Think about how your days are spent, alone or together.
 - **Plan**: Look for ways to make the most of your time.
 
