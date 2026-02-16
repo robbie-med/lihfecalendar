@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Calendar</title>
+  <style>
+    /* Base styles */
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f7f7f7;
+      color: #333;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .controls {
+      margin: 20px 0;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+    .person-inputs {
+      padding: 15px;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #fff;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .person-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .controls label, .controls input, .controls select, .controls button {
+      margin: 10px;
+    }
+    .relationship-inputs {
+      padding: 15px;
+      margin: 10px 0;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .relationship-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #8844aa;
+    }
+    .calendar-container {
+      overflow-x: auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      position: relative;
+      transition: background-color 0.3s;
+    }
+    #calendar {
+      display: flex;
+      flex-direction: column;
+    }
+    .year-row {
+      display: flex;
+      margin-bottom: 4px;
+    }
+    .year-label {
+      width: 50px;
+      text-align: right;
+      margin-right: 10px;
+      font-size: 12px;
+      color: #666;
+      line-height: 12px;
+      transition: color 0.3s;
+    }
+    .month-group {
+      display: flex;
+      margin-right: 4px;
+      border-right: 1px dotted #eee;
+      transition: border-color 0.3s;
+    }
+    .month-group:last-child {
+      margin-right: 0;
+      border-right: none;
+    }
+    .week {
+      width: 10px;
+      height: 10px;
+      margin: 1px;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-color: #ddd;
+      transition: background-color 0.3s, opacity 0.3s;
+    }
+    .pre-birth-week {
+      background-color: #1a1a1a;
+    }
+    .past-week-1 {
+      background-color: #4a6fa5;
+    }
+    .past-week-2 {
+      background-color: #a55a4a;
+    }
+    .past-week-both {
+      background-color: #8844aa;
+    }
+    .past-week-together {
+      background-color: #44aa44;
+    }
+    .after-person1-death {
+      background-color: #a55a4a;
+      opacity: 0.7;
+    }
+    .after-person2-death {
+      background-color: #4a6fa5;
+      opacity: 0.7;
+    }
+    .after-both-death {
+      background-color: #1a1a1a;
+      opacity: 0.5;
+    }
+    .current-week-1 {
+      background-color: #5b8ce5;
+      animation: pulse 2s infinite;
+    }
+    .current-week-2 {
+      background-color: #e5735b;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+      transition: color 0.3s;
+    }
+    .legend {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 10px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .screenshot-btn,
+    .toggle-dark-btn,
+    .toggle-lang-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 15px;
+      background-color: #4a6fa5;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .screenshot-btn:hover,
+    .toggle-dark-btn:hover,
+    .toggle-lang-btn:hover {
+      background-color: #3a5a85;
+    }
+    .checkbox-container {
+      margin: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .checkbox-container input {
+      margin-right: 5px;
+    }
+
+    /* Dark Mode Styles */
+    .dark-mode {
+      background-color: #333;
+      color: #eee;
+    }
+    .dark-mode h1 {
+      color: #fff;
+    }
+    .dark-mode .controls {
+      background-color: #444;
+      box-shadow: 0 2px 5px rgba(255,255,255,0.1);
+    }
+    .dark-mode .person-inputs,
+    .dark-mode .relationship-inputs {
+      background-color: #555;
+      border-color: #666;
+    }
+    .dark-mode .calendar-container {
+      background-color: #444;
+      box-shadow: 0 2px 5px rgba(255,255,255,0.1);
+    }
+    .dark-mode .year-label {
+      color: #ccc;
+    }
+    .dark-mode .month-group {
+      border-color: #666;
+    }
+    .dark-mode footer {
+      color: #ccc;
+    }
+    .dark-mode .legend-item span {
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="main-title">Life Calendar</h1>
+  
+  <!-- Toggle buttons -->
+  <button id="toggle-dark" class="toggle-dark-btn">Toggle Dark Mode</button>
+  <button id="toggle-lang" class="toggle-lang-btn">한국어 전환</button>
+  
+  <div class="controls">
+    <div class="person-inputs" id="person1-inputs">
+      <div class="person-title" id="person1-title">Person 1</div>
+      <label for="name1" id="label-name1">Name:</label>
+      <input type="text" id="name1" placeholder="Enter name" value="Person 1">
+      
+      <label for="birthdate1" id="label-birthdate1">Birth Date:</label>
+      <input type="date" id="birthdate1" required>
+      
+      <label for="gender1" id="label-gender1">Biological Sex:</label>
+      <select id="gender1">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="show-person1">
+        <label for="show-person1" id="label-show-person1">Show</label>
+      </div>
+    </div>
+    
+    <div class="person-inputs" id="person2-inputs">
+      <div class="person-title" id="person2-title">Person 2</div>
+      <label for="name2" id="label-name2">Name:</label>
+      <input type="text" id="name2" placeholder="Enter name" value="Person 2">
+      
+      <label for="birthdate2" id="label-birthdate2">Birth Date:</label>
+      <input type="date" id="birthdate2">
+      
+      <label for="gender2" id="label-gender2">Biological Sex:</label>
+      <select id="gender2">
+        <option value="female">Female</option>
+        <option value="male">Male</option>
+      </select>
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="show-person2">
+        <label for="show-person2" id="label-show-person2">Show</label>
+      </div>
+    </div>
+    
+    <div class="relationship-inputs">
+      <div class="relationship-title" id="relationship-title">Relationship</div>
+      <label for="met-date" id="label-met-date">When We Met:</label>
+      <input type="date" id="met-date">
+      
+      <div class="checkbox-container">
+        <input type="checkbox" id="show-met-date">
+        <label for="show-met-date" id="label-show-met-date">Show "When We Met" Date</label>
+      </div>
+    </div>
+    
+    <button id="generate">Generate Calendar</button>
+  </div>
+  
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background-color: #1a1a1a;"></div>
+      <span id="legend-prebirth">Pre-Birth</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background-color: #4a6fa5;"></div>
+      <span id="person1-legend">Person 1 Only</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background-color: #a55a4a;"></div>
+      <span id="person2-legend">Person 2 Only</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background-color: #8844aa;"></div>
+      <span id="legend-both">Both People (Before Meeting)</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background-color: #44aa44;"></div>
+      <span id="legend-together">Time Together</span>
+    </div>
+  </div>
+  
+  <div class="calendar-container">
+    <div id="calendar"></div>
+  </div>
+  
+  <button id="screenshot" class="screenshot-btn">Save as Image</button>
+  
+  <footer>
+    <p id="footer-created">Life Calendar Visualization — Created on <span id="14MAR2025"></span></p>
+    <p id="footer-inspired">Inspired by Tim Urban's <a href="https://waitbutwhy.com/2014/05/life-weeks.html" target="_blank">Life Calendar</a></p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+  <script>
+  // Translation dictionary
+  const translations = {
+    en: {
+      title: "Life Calendar",
+      person1: "Person 1",
+      person2: "Person 2",
+      name: "Name:",
+      birthDate: "Birth Date:",
+      gender: "Biological Sex:",
+      show: "Show",
+      relationship: "Relationship",
+      whenWeMet: "When We Met:",
+      showWhenWeMet: "Show \"When We Met\" Date",
+      generateCalendar: "Generate Calendar",
+      preBirth: "Pre-Birth",
+      person1Only: "Person 1 Only",
+      person2Only: "Person 2 Only",
+      bothBeforeMeeting: "Both People (Before Meeting)",
+      timeTogether: "Time Together",
+      saveImage: "Save as Image",
+      createdOn: "Life Calendar Visualization — Created on",
+      inspiredBy: 'Inspired by Tim Urban\'s <a href="https://waitbutwhy.com/2014/05/life-weeks.html" target="_blank">Life Calendar</a>',
+      toggleDark: "Toggle Dark Mode",
+      toggleLang: "한국어 전환",
+      male: "Male",
+      female: "Female"
+    },
+    ko: {
+      title: "인생 달력",
+      person1: "사람 1",
+      person2: "사람 2",
+      name: "이름:",
+      birthDate: "생일:",
+      gender: "성별:",
+      show: "보이기",
+      relationship: "관계",
+      whenWeMet: "만난 날짜:",
+      showWhenWeMet: "만난 날짜 보이기",
+      generateCalendar: "달력 생성",
+      preBirth: "출생 전",
+      person1Only: "사람 1만",
+      person2Only: "사람 2만",
+      bothBeforeMeeting: "두 사람 모두 (만나기 전)",
+      timeTogether: "함께한 시간",
+      saveImage: "이미지로 저장",
+      createdOn: "인생 달력 시각화 — 생성일:",
+      inspiredBy: '팀 어반의 <a href="https://waitbutwhy.com/2014/05/life-weeks.html" target="_blank">인생 달력</a>에서 영감을 받음',
+      toggleDark: "다크 모드 전환",
+      toggleLang: "Switch to English",
+      male: "남성",
+      female: "여성"
+    }
+  };
+
+  // Default language is English
+  let currentLanguage = "en";
+
+  // Update UI language texts
+  function updateLanguageUI() {
+    // Title
+    document.getElementById("main-title").textContent = translations[currentLanguage].title;
+    // Dark mode and language toggle buttons
+    document.getElementById("toggle-dark").textContent = translations[currentLanguage].toggleDark;
+    document.getElementById("toggle-lang").textContent = translations[currentLanguage].toggleLang;
+    // Person inputs titles
+    document.getElementById("person1-title").textContent = translations[currentLanguage].person1;
+    document.getElementById("person2-title").textContent = translations[currentLanguage].person2;
+    // Labels for person 1
+    document.getElementById("label-name1").textContent = translations[currentLanguage].name;
+    document.getElementById("label-birthdate1").textContent = translations[currentLanguage].birthDate;
+    document.getElementById("label-gender1").textContent = translations[currentLanguage].gender;
+    document.getElementById("label-show-person1").textContent = translations[currentLanguage].show;
+    // Labels for person 2
+    document.getElementById("label-name2").textContent = translations[currentLanguage].name;
+    document.getElementById("label-birthdate2").textContent = translations[currentLanguage].birthDate;
+    document.getElementById("label-gender2").textContent = translations[currentLanguage].gender;
+    document.getElementById("label-show-person2").textContent = translations[currentLanguage].show;
+    // Relationship inputs
+    document.getElementById("relationship-title").textContent = translations[currentLanguage].relationship;
+    document.getElementById("label-met-date").textContent = translations[currentLanguage].whenWeMet;
+    document.getElementById("label-show-met-date").textContent = translations[currentLanguage].showWhenWeMet;
+    // Generate button
+    document.getElementById("generate").textContent = translations[currentLanguage].generateCalendar;
+    // Legend texts
+    document.getElementById("legend-prebirth").textContent = translations[currentLanguage].preBirth;
+    document.getElementById("person1-legend").textContent = translations[currentLanguage].person1Only;
+    document.getElementById("person2-legend").textContent = translations[currentLanguage].person2Only;
+    document.getElementById("legend-both").textContent = translations[currentLanguage].bothBeforeMeeting;
+    document.getElementById("legend-together").textContent = translations[currentLanguage].timeTogether;
+    // Screenshot button
+    document.getElementById("screenshot").textContent = translations[currentLanguage].saveImage;
+    // Footer texts
+    document.getElementById("footer-created").childNodes[0].textContent = translations[currentLanguage].createdOn + " ";
+    document.getElementById("footer-inspired").innerHTML = translations[currentLanguage].inspiredBy;
+    // Update gender select options
+    const gender1Options = document.getElementById("gender1").options;
+    for (let i = 0; i < gender1Options.length; i++) {
+      if (gender1Options[i].value === "male") {
+        gender1Options[i].textContent = translations[currentLanguage].male;
+      } else if (gender1Options[i].value === "female") {
+        gender1Options[i].textContent = translations[currentLanguage].female;
+      }
+    }
+    const gender2Options = document.getElementById("gender2").options;
+    for (let i = 0; i < gender2Options.length; i++) {
+      if (gender2Options[i].value === "male") {
+        gender2Options[i].textContent = translations[currentLanguage].male;
+      } else if (gender2Options[i].value === "female") {
+        gender2Options[i].textContent = translations[currentLanguage].female;
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Table 11 — Cohort Life Expectancies data by birth year, sex, and age
+    const cohortLifeExpectancyData = {
+      male: {
+        // Year: [at age 0, at age 30, at age 60, at age 65, at age 70, at age 100]
+        1900: [51.52, 39.32, 16.34, 13.46, 10.98, 1.97],
+        1901: [52.88, 39.49, 16.39, 13.53, 11.03, 1.96],
+        1902: [53.34, 39.65, 16.43, 13.60, 11.10, 1.93],
+        1903: [53.86, 39.80, 16.49, 13.66, 11.17, 1.92],
+        1904: [53.84, 39.95, 16.56, 13.74, 11.23, 1.91],
+        1905: [53.96, 40.11, 16.63, 13.81, 11.29, 1.90],
+        1906: [54.16, 40.27, 16.72, 13.89, 11.34, 1.89],
+        1907: [54.87, 40.44, 16.81, 13.97, 11.38, 1.89],
+        1908: [55.46, 40.60, 16.90, 14.05, 11.43, 1.89],
+        1909: [56.07, 40.76, 17.01, 14.14, 11.49, 1.90],
+        1910: [56.19, 40.91, 17.12, 14.23, 11.54, 1.90],
+        1920: [61.77, 42.82, 18.41, 15.21, 12.31, 2.02],
+        1930: [66.09, 44.35, 19.51, 16.13, 13.02, 2.16],
+        1940: [69.55, 46.09, 20.56, 16.95, 13.64, 2.30],
+        1950: [72.45, 47.18, 21.36, 17.62, 14.21, 2.45],
+        1960: [73.88, 48.13, 22.06, 18.24, 14.75, 2.59],
+        1970: [75.80, 49.22, 22.71, 18.82, 15.27, 2.74],
+        1980: [77.60, 50.09, 23.33, 19.38, 15.76, 2.89],
+        1990: [78.90, 50.90, 23.92, 19.91, 16.24, 3.03],
+        2000: [80.01, 51.66, 24.48, 20.42, 16.69, 3.18],
+        2010: [80.96, 52.38, 25.02, 20.91, 17.13, 3.33],
+        2020: [81.80, 53.07, 25.53, 21.37, 17.55, 3.47],
+        2030: [82.57, 53.71, 26.02, 21.82, 17.95, 3.61],
+        2040: [83.30, 54.32, 26.49, 22.26, 18.34, 3.75],
+        2050: [83.98, 54.91, 26.95, 22.67, 18.72, 3.89],
+        2060: [84.63, 55.46, 27.38, 23.08, 19.09, 4.03],
+        2070: [85.24, 56.00, 27.80, 23.47, 19.45, 4.17],
+        2080: [85.82, 56.51, 28.21, 23.85, 19.80, 4.31],
+        2090: [86.37, 57.00, 28.61, 24.22, 20.13, 4.44],
+        2100: [86.90, 57.47, 28.99, 24.57, 20.46, 4.54]
+      },
+      female: {
+        // Year: [at age 0, at age 30, at age 60, at age 65, at age 70, at age 100]
+        1900: [58.28, 45.75, 21.58, 18.03, 14.72, 2.25],
+        1901: [59.71, 46.03, 21.71, 18.16, 14.82, 2.24],
+        1902: [60.28, 46.32, 21.83, 18.28, 14.90, 2.22],
+        1903: [60.94, 46.60, 21.95, 18.38, 14.98, 2.20],
+        1904: [61.08, 46.86, 22.06, 18.46, 15.04, 2.19],
+        1905: [61.30, 47.09, 22.15, 18.52, 15.09, 2.18],
+        1906: [61.57, 47.30, 22.21, 18.57, 15.11, 2.18],
+        1907: [62.27, 47.48, 22.27, 18.61, 15.12, 2.18],
+        1908: [62.89, 47.64, 22.31, 18.65, 15.13, 2.18],
+        1909: [63.51, 47.77, 22.35, 18.68, 15.14, 2.19],
+        1910: [63.71, 47.88, 22.39, 18.69, 15.14, 2.19],
+        1920: [69.22, 48.93, 22.67, 18.84, 15.25, 2.32],
+        1930: [72.85, 49.71, 23.06, 19.16, 15.51, 2.48],
+        1940: [75.75, 50.79, 23.63, 19.66, 15.99, 2.64],
+        1950: [78.46, 51.75, 24.28, 20.27, 16.54, 2.80],
+        1960: [79.58, 52.46, 24.94, 20.87, 17.09, 2.97],
+        1970: [80.91, 53.22, 25.55, 21.43, 17.60, 3.13],
+        1980: [82.27, 53.93, 26.14, 21.97, 18.09, 3.29],
+        1990: [83.30, 54.61, 26.69, 22.48, 18.56, 3.45],
+        2000: [84.19, 55.26, 27.22, 22.97, 19.00, 3.61],
+        2010: [84.96, 55.87, 27.72, 23.43, 19.42, 3.76],
+        2020: [85.65, 56.44, 28.19, 23.87, 19.83, 3.92],
+        2030: [86.29, 56.99, 28.65, 24.30, 20.22, 4.07],
+        2040: [86.89, 57.52, 29.09, 24.71, 20.60, 4.22],
+        2050: [87.46, 58.02, 29.51, 25.10, 20.96, 4.37],
+        2060: [88.00, 58.50, 29.91, 25.48, 21.31, 4.51],
+        2070: [88.51, 58.96, 30.30, 25.84, 21.65, 4.66],
+        2080: [89.00, 59.40, 30.68, 26.20, 21.98, 4.80],
+        2090: [89.47, 59.83, 31.05, 26.54, 22.30, 4.94],
+        2100: [89.91, 60.24, 31.39, 26.87, 22.61, 5.03]
+      }
+    };
+
+    // Helper function to get the closest available birth year in our data
+    function getClosestBirthYear(year) {
+      // Find available years
+      const availableYears = Object.keys(cohortLifeExpectancyData.male)
+        .map(y => parseInt(y))
+        .sort((a, b) => a - b);
+      
+      // Find the closest year in our dataset
+      let closestYear = availableYears[0];
+      let minDiff = Math.abs(year - closestYear);
+      
+      for (let i = 1; i < availableYears.length; i++) {
+        const diff = Math.abs(year - availableYears[i]);
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestYear = availableYears[i];
+        }
+      }
+      
+      return closestYear;
+    }
+
+    // Function to get life expectancy based on birth year, current age, and sex
+    function getLifeExpectancy(birthYear, currentAgeYears, sex) {
+      // Get the closest birth year we have data for
+      const closestBirthYear = getClosestBirthYear(birthYear);
+      
+      // Get the life expectancy data for this birth year and sex
+      const data = cohortLifeExpectancyData[sex][closestBirthYear];
+      
+      if (!data) {
+        // Fallback to simple average if data is missing
+        return sex === 'male' ? 76 : 81;
+      }
+      
+      // Define the age points where we have data
+      const agePoints = [0, 30, 60, 65, 70, 100];
+      
+      // If the current age exactly matches one of our age points
+      const exactAgeIndex = agePoints.indexOf(currentAgeYears);
+      if (exactAgeIndex !== -1) {
+        // For age 0, return the total life expectancy
+        if (exactAgeIndex === 0) {
+          return data[0];
+        } else {
+          // For other exact ages, add current age plus remaining years
+          return currentAgeYears + data[exactAgeIndex];
+        }
+      }
+      
+      // For ages between our data points, use linear interpolation
+      // Find the bracketing age points
+      let lowerIndex = 0;
+      for (let i = 0; i < agePoints.length; i++) {
+        if (agePoints[i] <= currentAgeYears && (i === agePoints.length - 1 || agePoints[i + 1] > currentAgeYears)) {
+          lowerIndex = i;
+          break;
+        }
+      }
+      
+      // If we're beyond our last age point (100), use that data
+      if (lowerIndex === agePoints.length - 1) {
+        return currentAgeYears + data[lowerIndex];
+      }
+      
+      // Get the upper index
+      const upperIndex = lowerIndex + 1;
+      
+      // Calculate the proportion between the two age points
+      const lowerAge = agePoints[lowerIndex];
+      const upperAge = agePoints[upperIndex];
+      const proportion = (currentAgeYears - lowerAge) / (upperAge - lowerAge);
+      
+      // Get the remaining years data for both bracketing ages
+      const lowerRemainingYears = data[lowerIndex];
+      const upperRemainingYears = data[upperIndex];
+      
+      // Adjust for special case of age 0
+      if (lowerIndex === 0) {
+        // We need to convert "total lifespan" to "remaining years" for age 0
+        // For interpolation between age 0 and 30
+        const remainingYearsAtLowerAge = lowerRemainingYears - lowerAge; // Convert to remaining years
+        const remainingYearsAtUpperAge = upperRemainingYears; // Already in remaining years
+        
+        // Interpolate the remaining years
+        const interpolatedRemainingYears = remainingYearsAtLowerAge - proportion * (remainingYearsAtLowerAge - remainingYearsAtUpperAge);
+        
+        // Convert back to total lifespan
+        return currentAgeYears + interpolatedRemainingYears;
+      } else {
+        // For all other age ranges, both values are in "remaining years" format
+        // Interpolate the remaining years
+        const interpolatedRemainingYears = lowerRemainingYears - proportion * (lowerRemainingYears - upperRemainingYears);
+        
+        // Calculate total life expectancy
+        return currentAgeYears + interpolatedRemainingYears;
+      }
+    }
+
+    // Set initial texts
+    updateLanguageUI();
+
+    // Toggle dark mode on button click
+    document.getElementById('toggle-dark').addEventListener('click', function() {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    // Toggle language on button click
+    document.getElementById('toggle-lang').addEventListener('click', function() {
+      currentLanguage = currentLanguage === "en" ? "ko" : "en";
+      updateLanguageUI();
+    });
+
+    // Helper function to format dates as "12OCT" or "12OCT2022"
+    function formatDate(date, includeYear = false) {
+      const day = date.getDate();
+      const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+      const month = monthNames[date.getMonth()];
+      return includeYear ? `${day}${month}${date.getFullYear()}` : `${day}${month}`;
+    }
+
+    // Change this line in your JavaScript
+    document.getElementById('14MAR2025').textContent = formatDate(new Date(), true);
+
+    // Event listeners for calendar generation and screenshot
+    document.getElementById('generate').addEventListener('click', generateCalendar);
+    document.getElementById('screenshot').addEventListener('click', takeScreenshot);
+    document.getElementById('show-person1').addEventListener('change', generateCalendar);
+    document.getElementById('show-person2').addEventListener('change', generateCalendar);
+    document.getElementById('show-met-date').addEventListener('change', generateCalendar);
+    document.getElementById('name1').addEventListener('input', updateLanguageUI);
+    document.getElementById('name2').addEventListener('input', updateLanguageUI);
+
+    // Set default dates
+    const defaultDate1 = new Date();
+    defaultDate1.setFullYear(defaultDate1.getFullYear() - 30);
+    document.getElementById('birthdate1').value = defaultDate1.toISOString().split('T')[0];
+
+    const defaultDate2 = new Date();
+    defaultDate2.setFullYear(defaultDate2.getFullYear() - 25);
+    document.getElementById('birthdate2').value = defaultDate2.toISOString().split('T')[0];
+
+    const defaultMetDate = new Date();
+    defaultMetDate.setFullYear(defaultMetDate.getFullYear() - 5);
+    document.getElementById('met-date').value = defaultMetDate.toISOString().split('T')[0];
+
+    document.getElementById('show-person2').checked = true;
+    document.getElementById('show-met-date').checked = true;
+
+    function generateCalendar() {
+      const showPerson1 = document.getElementById('show-person1').checked;
+      const showPerson2 = document.getElementById('show-person2').checked;
+      const showMetDate = document.getElementById('show-met-date').checked;
+
+      if (!showPerson1 && !showPerson2) {
+        alert('Please check at least one person to display');
+        return;
+      }
+
+      const name1 = document.getElementById('name1').value || translations[currentLanguage].person1;
+      const name2 = document.getElementById('name2').value || translations[currentLanguage].person2;
+
+      const gender1 = document.getElementById('gender1').value;
+      const birthdate1String = document.getElementById('birthdate1').value;
+      const birthdate1 = showPerson1 ? new Date(birthdate1String) : null;
+
+      const gender2 = document.getElementById('gender2').value;
+      const birthdate2String = document.getElementById('birthdate2').value;
+      const birthdate2 = showPerson2 ? new Date(birthdate2String) : null;
+
+      const metDateString = document.getElementById('met-date').value;
+      const metDate = showMetDate && metDateString ? new Date(metDateString) : null;
+
+      if (showPerson1 && !birthdate1String) {
+        alert('Please enter a birth date for ' + name1);
+        return;
+      }
+      if (showPerson2 && !birthdate2String) {
+        alert('Please enter a birth date for ' + name2);
+        return;
+      }
+      if (showMetDate && !metDateString) {
+        alert('Please enter a date for "When We Met"');
+        return;
+      }
+      if (showMetDate && showPerson1 && showPerson2) {
+        if (metDate < birthdate1 || metDate < birthdate2) {
+          alert('The "When We Met" date must be after both birth dates');
+          return;
+        }
+      }
+
+      const today = new Date();
+      const calendarEl = document.getElementById('calendar');
+      calendarEl.innerHTML = '';
+
+      let oldestBirthdate = null;
+      if (showPerson1 && showPerson2) {
+        oldestBirthdate = birthdate1 < birthdate2 ? birthdate1 : birthdate2;
+      } else if (showPerson1) {
+        oldestBirthdate = birthdate1;
+      } else {
+        oldestBirthdate = birthdate2;
+      }
+
+      const startDate = new Date(oldestBirthdate.getFullYear(), 0, 1);
+
+      const getBirthWeek = (birthdate) => {
+        const diffTime = birthdate - startDate;
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+        return Math.floor(diffDays / 7);
+      };
+
+      const birthWeek1 = showPerson1 ? getBirthWeek(birthdate1) : null;
+      const birthWeek2 = showPerson2 ? getBirthWeek(birthdate2) : null;
+      const metWeek = metDate ? getBirthWeek(metDate) : null;
+
+      const currentTime = today - startDate;
+      const currentDays = currentTime / (1000 * 60 * 60 * 24);
+      const currentWeek = Math.floor(currentDays / 7);
+
+      // Calculate current age in years for life expectancy calculation
+      const getCurrentAgeYears = (birthdate) => {
+        if (!birthdate) return 0;
+        const ageDate = new Date(today - birthdate);
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
+      };
+
+      const currentAge1Years = showPerson1 ? getCurrentAgeYears(birthdate1) : 0;
+      const currentAge2Years = showPerson2 ? getCurrentAgeYears(birthdate2) : 0;
+
+      // Get more accurate life expectancy using Table 11 data
+      let lifeExpectancy1 = 0;
+      let lifeExpectancy2 = 0;
+
+      if (showPerson1) {
+        lifeExpectancy1 = getLifeExpectancy(birthdate1.getFullYear(), currentAge1Years, gender1);
+      }
+      if (showPerson2) {
+        lifeExpectancy2 = getLifeExpectancy(birthdate2.getFullYear(), currentAge2Years, gender2);
+      }
+
+      const getLifeExpectancyWeek = (birthWeek, lifeExpectancyYears) => {
+        return birthWeek + (lifeExpectancyYears * 52);
+      };
+
+      // Calculate life expectancy in weeks
+      let lifeExpectancyWeek1 = 0;
+      let lifeExpectancyWeek2 = 0;
+
+      if (showPerson1) {
+        lifeExpectancyWeek1 = getLifeExpectancyWeek(birthWeek1, lifeExpectancy1);
+      }
+      if (showPerson2) {
+        lifeExpectancyWeek2 = getLifeExpectancyWeek(birthWeek2, lifeExpectancy2);
+      }
+
+      const monthGroups = [4, 4, 5, 4, 4, 5, 4, 5, 4, 4, 5, 4];
+
+      let latestBirthWeek = 0;
+      if (showPerson1 && showPerson2) {
+        latestBirthWeek = Math.max(birthWeek1, birthWeek2);
+      } else if (showPerson1) {
+        latestBirthWeek = birthWeek1;
+      } else {
+        latestBirthWeek = birthWeek2;
+      }
+      
+      // Extend the calendar to show at least 10 years past the longer life expectancy
+      const endWeek = Math.max(
+        lifeExpectancyWeek1 + (10 * 52),
+        lifeExpectancyWeek2 + (10 * 52)
+      );
+
+      const calculateAge = (birthWeek, currentWeek) => {
+        if (birthWeek === null || currentWeek < birthWeek) {
+          return "Not born yet";
+        }
+        const weeksLived = currentWeek - birthWeek;
+        const yearsLived = Math.floor(weeksLived / 52);
+        const remainingWeeks = weeksLived % 52;
+        return `${yearsLived} years, ${remainingWeeks} weeks`;
+      };
+
+      const calculateTimeSpentTogether = (weekNumber) => {
+        if (!metWeek || weekNumber < metWeek) {
+          return null;
+        }
+        const weeksSpentTogether = weekNumber - metWeek;
+        const yearsSpentTogether = Math.floor(weeksSpentTogether / 52);
+        const remainingWeeksTogether = weeksSpentTogether % 52;
+        return `${yearsSpentTogether} years, ${remainingWeeksTogether} weeks`;
+      };
+
+      let totalWeekCounter = 0;
+      for (let year = 0; year < 150; year++) {
+        const calendarYear = startDate.getFullYear() + year;
+        const yearRow = document.createElement('div');
+        yearRow.className = 'year-row';
+
+        const yearLabel = document.createElement('div');
+        yearLabel.className = 'year-label';
+        yearLabel.textContent = calendarYear;
+        yearRow.appendChild(yearLabel);
+
+        for (let month = 0; month < monthGroups.length; month++) {
+          const monthGroup = document.createElement('div');
+          monthGroup.className = 'month-group';
+
+          for (let w = 0; w < monthGroups[month]; w++) {
+            const weekDiv = document.createElement('div');
+            weekDiv.className = 'week';
+
+            const isPastCurrentDate = totalWeekCounter < currentWeek;
+            const isCurrentWeek = totalWeekCounter === currentWeek;
+            const isPerson1Born = showPerson1 && totalWeekCounter >= birthWeek1;
+            const isPerson2Born = showPerson2 && totalWeekCounter >= birthWeek2;
+            const isPerson1Dead = showPerson1 && totalWeekCounter >= lifeExpectancyWeek1;
+            const isPerson2Dead = showPerson2 && totalWeekCounter >= lifeExpectancyWeek2;
+            const haveMetByThisWeek = metWeek && totalWeekCounter >= metWeek;
+
+            const dateOfWeek = new Date(startDate.getTime() + totalWeekCounter * 7 * 24 * 60 * 60 * 1000);
+            const monthName = dateOfWeek.toLocaleString('default', { month: 'short' });
+            const yearOfWeek = dateOfWeek.getFullYear();
+            let tooltipContent = `Date: ${monthName} ${dateOfWeek.getDate()}, ${yearOfWeek}`;
+
+            if (showPerson1) {
+              const person1Age = calculateAge(birthWeek1, totalWeekCounter);
+              tooltipContent += `\n${name1}: ${person1Age}`;
+              if (isPerson1Dead && totalWeekCounter >= lifeExpectancyWeek1) {
+                tooltipContent += " (Expected death)";
+              }
+            }
+            if (showPerson2) {
+              const person2Age = calculateAge(birthWeek2, totalWeekCounter);
+              tooltipContent += `\n${name2}: ${person2Age}`;
+              if (isPerson2Dead && totalWeekCounter >= lifeExpectancyWeek2) {
+                tooltipContent += " (Expected death)";
+              }
+            }
+            if (showPerson1 && showPerson2 && isPerson1Born && isPerson2Born && haveMetByThisWeek) {
+              const timeSpentTogether = calculateTimeSpentTogether(totalWeekCounter);
+              if (timeSpentTogether && !isPerson1Dead && !isPerson2Dead) {
+                tooltipContent += `\nTogether for: ${timeSpentTogether}`;
+              }
+            }
+
+            if (isCurrentWeek) {
+              if (isPerson1Born && !isPerson2Born) {
+                weekDiv.classList.add('current-week-1');
+              } else if (isPerson2Born && !isPerson1Born) {
+                weekDiv.classList.add('current-week-2');
+              }
+            } else if (isPastCurrentDate) {
+              if (!isPerson1Born && !isPerson2Born) {
+                weekDiv.classList.add('pre-birth-week');
+              }
+              else if (isPerson1Born && !isPerson2Born && !isPerson1Dead) {
+                weekDiv.classList.add('past-week-1');
+              }
+              else if (isPerson2Born && !isPerson1Born && !isPerson2Dead) {
+                weekDiv.classList.add('past-week-2');
+              }
+              else if (isPerson1Born && isPerson2Born && !isPerson1Dead && !isPerson2Dead) {
+                if (haveMetByThisWeek) {
+                  weekDiv.classList.add('past-week-together');
+                } else {
+                  weekDiv.classList.add('past-week-both');
+                }
+              }
+              else if (isPerson1Born && isPerson2Born && isPerson1Dead && !isPerson2Dead) {
+                weekDiv.classList.add('after-person1-death');
+              }
+              else if (isPerson1Born && isPerson2Born && !isPerson1Dead && isPerson2Dead) {
+                weekDiv.classList.add('after-person2-death');
+              }
+              else if (isPerson1Dead && isPerson2Dead) {
+                weekDiv.classList.add('pre-birth-week');
+                weekDiv.style.opacity = "0.5";
+              }
+              else if (showPerson1 && !showPerson2 && isPerson1Dead) {
+                weekDiv.classList.add('pre-birth-week');
+                weekDiv.style.opacity = "0.5";
+              }
+              else if (!showPerson1 && showPerson2 && isPerson2Dead) {
+                weekDiv.classList.add('pre-birth-week');
+                weekDiv.style.opacity = "0.5";
+              }
+            } else {
+              if (isPerson1Dead && isPerson2Dead) {
+                weekDiv.classList.add('pre-birth-week');
+                weekDiv.style.opacity = "0.5";
+              }
+              else if (isPerson1Dead && !isPerson2Dead) {
+                weekDiv.classList.add('after-person1-death');
+              }
+              else if (!isPerson1Dead && isPerson2Dead) {
+                weekDiv.classList.add('after-person2-death');
+              }
+              else if (isPerson1Born && isPerson2Born) {
+                if (haveMetByThisWeek) {
+                  weekDiv.classList.add('past-week-together');
+                  weekDiv.style.opacity = "0.3";
+                } else {
+                  weekDiv.classList.add('past-week-both');
+                  weekDiv.style.opacity = "0.3";
+                }
+              }
+              else if (isPerson1Born) {
+                weekDiv.classList.add('past-week-1');
+                weekDiv.style.opacity = "0.3";
+              }
+              else if (isPerson2Born) {
+                weekDiv.classList.add('past-week-2');
+                weekDiv.style.opacity = "0.3";
+              }
+            }
+
+            weekDiv.title = tooltipContent;
+            monthGroup.appendChild(weekDiv);
+            totalWeekCounter++;
+          }
+          yearRow.appendChild(monthGroup);
+        }
+        calendarEl.appendChild(yearRow);
+        if (totalWeekCounter >= endWeek) {
+          break;
+        }
+      }
+    }
+
+    function takeScreenshot() {
+      html2canvas(document.querySelector('.calendar-container')).then(function(canvas) {
+        const link = document.createElement('a');
+        link.download = 'life_calendar.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      });
+    }
+  });
+</script>
+</body>
+  <footer>
+    <h3> <a href="about.html">About</a> <a href="about_ko.html">정보</a> </h3>
+  </footer>
+</html>
